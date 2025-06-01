@@ -314,11 +314,20 @@
 
 
     <!-- Javascript here -->
-<script>onload = () => {
-    const c = setTimeout(() => {
-      document.body.classList.remove("not-loaded");
-      clearTimeout(c);
-    }, 1000);
-  };</script>
+<script>
+    onload = () => {
+  const c = setTimeout(() => {
+    document.body.classList.remove("not-loaded");
+    clearTimeout(c);
+  }, 1000);
+
+  // Thêm sự kiện click cho hoa
+  document.querySelectorAll('.flower').forEach(flower => {
+    flower.addEventListener('click', () => {
+      window.location.href = 'test.html';
+    });
+  });
+};
+</script>
 </body>
 </html>
