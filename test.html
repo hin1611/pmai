@@ -475,70 +475,62 @@ document.addEventListener('touchend', () => {
         // --- Thêm các hàm mới dưới đây ---
 
         function initializeAudio() {
-            if (!galaxyData.song) return;
+    if (!galaxyData.song) return;
 
-            const audio = document.getElementById('galaxyAudio');
+    const audio = document.getElementById('galaxyAudio');
 
-            // Thiết lập nguồn âm thanh
-            if (galaxyData.song.startsWith('http')) {
-                audio.src = galaxyData.song;
-            } else {
-                audio.src = `songs/${galaxyData.song}`;
-            }
+    // Thiết lập nguồn âm thanh
+    if (galaxyData.song.startsWith('http')) {
+        audio.src = galaxyData.song;
+    } else {
+        audio.src = `songs/${galaxyData.song}`;
+    }
 
-            // Cấu hình audio cho mobile
-            audio.loop = true;
-            audio.preload = 'metadata';
+    audio.loop = true;
+    audio.preload = 'metadata';
+    audio.volume = 0.7;
+
+    // Thử autoplay bằng cách bật mute tạm thời
+    audio.muted = true;
+    audio.play().then(() => {
+        setTimeout(() => {
+            audio.muted = false;
             audio.volume = 0.7;
+        }, 500);
+    }).catch(() => {
+        showManualPlayButton(); // fallback nếu autoplay bị chặn
+    });
 
-            let audioInitialized = false;
-            let userHasInteracted = false;
+    // Fallback tương tác nếu autoplay vẫn không thành công
+    let audioInitialized = false;
+    const interactionEvents = ['touchstart', 'touchend', 'click', 'keydown'];
 
-            async function initAudioOnFirstInteraction() {
-                if (audioInitialized) return;
+    function handleUserInteraction() {
+        if (audioInitialized) return;
 
-                try {
-                    await audio.load();
-                    const playPromise = audio.play();
+        audio.play().then(() => {
+            audio.muted = false;
+            audio.volume = 0.7;
+            audioInitialized = true;
+            hideAudioPrompt();
+        }).catch(() => {
+            showManualPlayButton();
+        });
 
-                    if (playPromise !== undefined) {
-                        await playPromise;
-                        audioInitialized = true;
-                        hideAudioPrompt();
-                    }
-                } catch (error) {
-                    showManualPlayButton();
-                }
-            }
+        interactionEvents.forEach(event => {
+            document.removeEventListener(event, handleUserInteraction);
+        });
+    }
 
-            const interactionEvents = ['touchstart', 'touchend', 'click', 'keydown'];
+    interactionEvents.forEach(event => {
+        document.addEventListener(event, handleUserInteraction, { passive: true });
+    });
 
-            function handleUserInteraction() {
-                if (!userHasInteracted) {
-                    userHasInteracted = true;
-                    initAudioOnFirstInteraction();
-                    interactionEvents.forEach(event => {
-                        document.removeEventListener(event, handleUserInteraction);
-                    });
-                }
-            }
+    audio.addEventListener('error', () => {
+        showAudioError();
+    });
+}
 
-            interactionEvents.forEach(event => {
-                document.addEventListener(event, handleUserInteraction, { passive: true });
-            });
-
-            audio.addEventListener('error', (e) => {
-                showAudioError();
-            });
-
-            audio.addEventListener('canplaythrough', () => {
-                // Ready to play
-            });
-
-            audio.play().catch(() => {
-                // Autoplay bị chặn, chờ tương tác người dùng
-            });
-        }
 
         function showManualPlayButton() {
             const existingButton = document.getElementById('manualPlayButton');
@@ -920,6 +912,7 @@ const fontSizeVariation = isSmallMobile ? 4 : isMobile ? 5 : 8;
     galaxy.appendChild(img);
     activeParticles.add(img);
     requestAnimationFrame(animateParticle);
+
 
 }
     </script>
