@@ -1,17 +1,9 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE html>
 <html>
   <head>
-    <title></title>
-    <meta name="Generator" content="EditPlus" />
-    <meta name="Author" content="" />
-    <meta name="Keywords" content="" />
-    <meta name="Description" content="" />
+    <title>Tống Đoàn</title>
     <meta charset="UTF-8" />
-    <script
-      type="text/javascript"
-      src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=nerv7xfxdG6nBVqZRyT325qeaKjdaKGASGZ0JVMlWO3NUJeYxmRp4UY6VZY8Wa4trlm6r1SkTYqlrJ7q2w-1Ew"
-      charset="UTF-8"
-    ></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <style>
       html,
       body {
@@ -19,10 +11,12 @@
         padding: 0;
         margin: 0;
         background: #000;
+        overflow: hidden;
       }
       canvas {
-        top: 50;
         position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
       }
@@ -39,10 +33,9 @@
         animation: heartbeat 1.5s infinite;
       }
       .box {
-        width: 500px;
-        height: 500px;
+        width: 100%;
+        height: 100%;
         position: relative;
-        margin: auto;
       }
     </style>
   </head>
@@ -56,16 +49,16 @@
        */
       var settings = {
         particles: {
-          length: 5000, // maximum amount of particles
-          duration: 2.5, // particle duration in sec
-          velocity: 200, // particle velocity in pixels/sec
-          effect: -0.6, // play with this for a nice effect
-          size: 13, // particle size in pixels
+          length: 5000,
+          duration: 2.5,
+          velocity: 200,
+          effect: -0.6,
+          size: 13,
         },
       };
 
       /*
-       * RequestAnimationFrame polyfill by Erik Möller
+       * RequestAnimationFrame polyfill
        */
       (function () {
         var b = 0;
@@ -117,31 +110,6 @@
           var length = this.length();
           this.x /= length;
           this.y /= length;
-          return this;
-        };
-        return Point;
-      })();
-
-      var Pointx = (function () {
-        function Pointx(x, y) {
-          this.x = typeof x !== "undefined" ? x : 0;
-          this.y = typeof y !== "undefined" ? y : 0;
-        }
-        Pointx.prototype.clone = function () {
-          return new Point(this.x, this.y);
-        };
-        Pointx.prototype.length = function (length) {
-          if (typeof length == "undefined")
-            return Math.sqrt(this.x * this.x + this.y * this.y);
-          this.normalize();
-          this.x *= length;
-          this.y *= length;
-          return this;
-        };
-        Pointx.prototype.normalize = function () {
-          var length = this.length();
-          this.x /= length * 100;
-          this.y /= length * 100;
           return this;
         };
         return Point;
@@ -200,7 +168,6 @@
           duration = settings.particles.duration;
 
         function ParticlePool(length) {
-          // create and populate particle pool
           particles = new Array(length);
           for (var i = 0; i < particles.length; i++)
             particles[i] = new Particle();
@@ -208,7 +175,6 @@
         ParticlePool.prototype.add = function (x, y, dx, dy) {
           particles[firstFree].initialize(x, y, dx, dy);
 
-          // handle circular queue
           firstFree++;
           if (firstFree == particles.length) firstFree = 0;
           if (firstActive == firstFree) firstActive++;
@@ -217,7 +183,6 @@
         ParticlePool.prototype.update = function (deltaTime) {
           var i;
 
-          // update active particles
           if (firstActive < firstFree) {
             for (i = firstActive; i < firstFree; i++)
               particles[i].update(deltaTime);
@@ -228,7 +193,6 @@
             for (i = 0; i < firstFree; i++) particles[i].update(deltaTime);
           }
 
-          // remove inactive particles
           while (
             particles[firstActive].age >= duration &&
             firstActive != firstFree
@@ -238,7 +202,6 @@
           }
         };
         ParticlePool.prototype.draw = function (context, image) {
-          // draw active particles
           if (firstActive < firstFree) {
             for (i = firstActive; i < firstFree; i++)
               particles[i].draw(context, image);
@@ -253,16 +216,15 @@
       })();
 
       /*
-       * Putting it all together
+       * Main animation
        */
       (function (canvas) {
         var context = canvas.getContext("2d"),
           particles = new ParticlePool(settings.particles.length),
           particleRate =
-            settings.particles.length / settings.particles.duration, // particles/sec
+            settings.particles.length / settings.particles.duration,
           time;
 
-        // get point on heart with -PI <= t <= PI
         function pointOnHeart(t) {
           return new Point(
             160 * Math.pow(Math.sin(t), 3),
@@ -274,13 +236,12 @@
           );
         }
 
-        // creating the particle image using a dummy canvas
         var image = (function () {
           var canvas = document.createElement("canvas"),
             context = canvas.getContext("2d");
           canvas.width = settings.particles.size;
           canvas.height = settings.particles.size;
-          // helper function to create the path
+
           function to(t) {
             var point = pointOnHeart(t);
             point.x =
@@ -291,37 +252,32 @@
               (point.y * settings.particles.size) / 350;
             return point;
           }
-          // create the path
+
           context.beginPath();
           var t = -Math.PI;
           var point = to(t);
           context.moveTo(point.x, point.y);
           while (t < Math.PI) {
-            t += 0.01; // baby steps!
+            t += 0.01;
             point = to(t);
             context.lineTo(point.x, point.y);
           }
           context.closePath();
-          // create the fill
           context.fillStyle = "#ff3490";
           context.fill();
-          // create the image
+
           var image = new Image();
           image.src = canvas.toDataURL();
           return image;
         })();
 
-        // render that thing!
         function render() {
-          // next animation frame
           requestAnimationFrame(render);
 
-          // update time
           var newTime = new Date().getTime() / 1000,
             deltaTime = newTime - (time || newTime);
           time = newTime;
 
-          // clear canvas
           context.clearRect(0, 0, canvas.width, canvas.height);
 
           function pointOnHeartx(t) {
@@ -346,7 +302,6 @@
             );
           }
 
-          // create new particles
           var amount = particleRate * deltaTime;
           for (var i = 0; i < amount; i++) {
             var pos = pointOnHeart(Math.PI - 2 * Math.PI * Math.random());
@@ -371,24 +326,22 @@
             );
           }
 
-          var amountx = (particleRate * deltaTime) / 2;
-          for (var i = 0; i < amountx; i++) {
-            var posx = pointOnHearty(Math.PI - 2 * Math.PI * Math.random());
-            var dirx = pos.clone().length(100);
+          var amounty = (particleRate * deltaTime) / 2;
+          for (var i = 0; i < amounty; i++) {
+            var posy = pointOnHearty(Math.PI - 2 * Math.PI * Math.random());
+            var diry = pos.clone().length(100);
             particles.add(
-              canvas.width / 2 + posx.x,
-              canvas.height / 2 - posx.y,
-              dirx.x,
-              -dirx.y
+              canvas.width / 2 + posy.x,
+              canvas.height / 2 - posy.y,
+              diry.x,
+              -diry.y
             );
           }
 
-          // update and draw particles
           particles.update(deltaTime);
           particles.draw(context, image);
         }
 
-        // handle (re-)sizing of the canvas
         function onResize() {
           var heightRatio = 1.5;
           canvas.width = canvas.clientWidth * heightRatio;
@@ -396,7 +349,6 @@
         }
         window.onresize = onResize;
 
-        // delay rendering bootstrap
         setTimeout(function () {
           onResize();
           render();
