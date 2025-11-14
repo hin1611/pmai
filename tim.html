@@ -3,7 +3,7 @@
   <head>
     <title></title>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=980, initial-scale=0.5">
+    
     <style>
       html,
       body {
@@ -44,8 +44,10 @@
       }
 
       #pinkboard {
-        animation: heartbeat 1.8s infinite;
-      }
+  animation: heartbeat 1.8s infinite;
+  transform-origin: center center;
+  transform: scale(calc(100vw / 980));
+}
     </style>
   </head>
   <body>
